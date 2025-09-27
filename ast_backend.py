@@ -305,3 +305,50 @@ class ASTBackend:
     def get_functions(self) -> List[ASTNode]:
         """Get all function declarations"""
         return self.get_nodes_by_kind(clang.cindex.CursorKind.FUNCTION_DECL)
+    
+    def find_node_at_location(self, line: int, column: int) -> Optional[ASTNode]:
+        """Find the most specific AST node that contains the given location"""
+        if not self.root_node:
+            return None
+        
+        def node_contains_location(node: ASTNode, target_line: int, target_col: int) -> bool:
+            """Check if a node's extent contains the given location"""
+            try:
+                extent = node.cursor.extent
+                if not extent or not extent.start or not extent.end:
+                    return False
+                
+                start_line = extent.start.line
+                start_col = extent.start.column
+                end_line = extent.end.line  
+                end_col = extent.end.column
+                
+                # Check if location is within the extent
+                if target_line < start_line or target_line > end_line:
+                    return False
+                    
+                if target_line == start_line and target_col < start_col:
+                    return False
+                    
+                if target_line == end_line and target_col > end_col:
+                    return False
+                    
+                return True
+            except:
+                return False
+        
+        def find_most_specific(node: ASTNode, target_line: int, target_col: int) -> Optional[ASTNode]:
+            """Recursively find the most specific node containing the location"""
+            if not node_contains_location(node, target_line, target_col):
+                return None
+            
+            # Check children first to find the most specific match
+            for child in node.children:
+                specific_match = find_most_specific(child, target_line, target_col)
+                if specific_match:
+                    return specific_match
+            
+            # If no child contains the location, this node is the most specific
+            return node
+        
+        return find_most_specific(self.root_node, line, column)

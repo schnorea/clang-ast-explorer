@@ -29,6 +29,7 @@ A comprehensive, interactive GUI application for exploring and analyzing C++ Abs
 - **Command History**: Navigate previous console commands with ↑/↓ arrow keys
 - **Node Search**: Find specific AST node types, functions, and variables
 - **Extent Highlighting**: Shows complete source range for complex constructs (classes, functions, templates)
+- **Reverse Navigation**: Click on source code lines to automatically select corresponding AST nodes
 
 ### 📁 File Management
 
@@ -159,9 +160,12 @@ python ast_explorer.py   # Run the application
 
 1. **File Menu**: Open C++ source files for analysis
 2. **AST Tree View** (Top 50%): 
-   - Click on nodes to select them
+   - Click on nodes to select them and highlight source code
    - Expand/collapse nodes to navigate the structure
    - Use View menu to expand/collapse all nodes
+3. **Source Code Viewer**: 
+   - Click on any line to select the corresponding AST node (reverse navigation)
+   - Automatic syntax highlighting and extent visualization
 3. **Node Information** (Middle 25%):
    - Shows detailed information about the selected node
    - Includes location, type, tokens, and cursor-specific data
@@ -368,6 +372,7 @@ The application uses a modular architecture making it easy to add new features:
 ## 🌟 What's New (September 2025)
 
 ### 🎯 Recent Updates
+- **Reverse Navigation**: Click source code lines to automatically select corresponding AST nodes
 - **Professional Project Structure**: Organized into logical directories (`test/`, `testers/`)
 - **Cross-Platform Support**: Setup and run scripts for Windows, macOS, and Linux
 - **Enhanced Documentation**: Comprehensive guides for all features

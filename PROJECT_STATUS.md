@@ -10,19 +10,21 @@
 
 ### Application Features Implemented
 1. **Four-Panel Interface**: AST Structure, Node Information, Source Code Viewer, Interactive Console
-2. **System Theme Integration**: Automatic dark/light mode detection and theming
-3. **File Monitoring**: Auto-detection of external file changes with reload dialogs
-4. **Source Code Highlighting**: Full extent highlighting of selected AST nodes
-5. **Interactive Console**: Python REPL with command history (↑/↓ navigation)
-6. **Modular Architecture**: Clean separation of backend, UI, and application logic
+2. **Bidirectional Navigation**: Click AST nodes to highlight source OR click source to select AST nodes
+3. **System Theme Integration**: Automatic dark/light mode detection and theming
+4. **File Monitoring**: Auto-detection of external file changes with reload dialogs
+5. **Source Code Highlighting**: Full extent highlighting of selected AST nodes
+6. **Interactive Console**: Python REPL with command history (↑/↓ navigation)
+7. **Modular Architecture**: Clean separation of backend, UI, and application logic
 
 ### Test and Demo Files
 - **`test/monitor_test.cpp`**: Simple C++ file for testing file monitoring
 - **`test/extent_test.cpp`**: Complex C++ file for testing AST extent highlighting
-- **`file_monitor_demo.py`**: Automated file modification demo
-- **`rapid_test.py`**: Dialog debouncing test script
-- **`test_scrollbars.py`**: Scrollbar theming comparison tool
-- **`quick_theme_test.py`**: Theme detection test utility
+- **`testers/file_monitor_demo.py`**: Automated file modification demo
+- **`testers/rapid_test.py`**: Dialog debouncing test script
+- **`testers/test_scrollbars.py`**: Scrollbar theming comparison tool
+- **`testers/test_reverse_navigation.py`**: Reverse navigation functionality test
+- **`testers/quick_theme_test.py`**: Theme detection test utility
 
 ## 🎯 Key Features Summary
 

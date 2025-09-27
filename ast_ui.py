@@ -92,6 +92,62 @@ class ASTTreeView:
             self.tree.item(item, open=True)  # Keep root open
             for child in self.tree.get_children(item):
                 collapse_item(child)
+                
+    def select_and_reveal_node(self, target_node: ASTNode):
+        """Select and reveal a specific node in the tree view"""
+        try:
+            # Find the tree item ID that corresponds to our target node
+            # Use the existing node_map which maps item_id -> node
+            # Compare by cursor properties since node objects might be different instances
+            target_item = None
+            for item_id, node in self.node_map.items():
+                try:
+                    # Compare basic properties
+                    if (node.cursor.kind == target_node.cursor.kind and 
+                        node.cursor.spelling == target_node.cursor.spelling):
+                        
+                        # Also compare location if available
+                        node_loc = node.cursor.location
+                        target_loc = target_node.cursor.location
+                        
+                        if (node_loc and target_loc and 
+                            node_loc.line == target_loc.line and
+                            node_loc.column == target_loc.column):
+                            target_item = item_id
+                            break
+                        elif not node_loc and not target_loc:
+                            # Both have no location, match by kind and spelling only
+                            target_item = item_id
+                            break
+                except Exception as e:
+                    # Skip nodes that have issues with property access
+                    continue
+            
+            if target_item:
+                # Expand all parent items to make the node visible
+                parent = self.tree.parent(target_item)
+                while parent:
+                    self.tree.item(parent, open=True)
+                    parent = self.tree.parent(parent)
+                
+                # Clear any existing selection first
+                self.tree.selection_remove(self.tree.selection())
+                
+                # Select and focus the target item
+                self.tree.selection_set(target_item)
+                self.tree.focus(target_item)
+                self.tree.see(target_item)  # Scroll to make it visible
+                
+                # Manually trigger the selection event since selection_set might not do it
+                self.tree.event_generate("<<TreeviewSelect>>")
+                
+                return True
+            else:
+                return False
+                
+        except Exception as e:
+            print(f"Error selecting node: {e}")
+            return False
 
 class ASTInfoPanel:
     """Panel for displaying detailed information about selected AST node"""
@@ -193,6 +249,17 @@ class SourceCodeViewer:
         
         # Line number variables
         self.current_highlight_line = None
+        
+        # Callback for reverse navigation (source -> AST)
+        self.click_callback = None
+        
+        # Bind click events for reverse navigation
+        self.text.bind("<Button-1>", self._on_text_click)
+        
+        # Add hover effects for better click target visibility
+        self.text.bind("<Motion>", self._on_mouse_motion)
+        self.text.bind("<Leave>", self._on_mouse_leave)
+        self.current_hover_line = None
     
     def _setup_theme_colors(self):
         """Detect system theme and set appropriate colors"""
@@ -315,6 +382,9 @@ class SourceCodeViewer:
                                foreground=self.string_color)
         self.text.tag_configure("number", 
                                foreground=self.number_color)
+        self.text.tag_configure("hover_line", 
+                               background=self.line_highlight_bg,
+                               foreground=self.fg_color)
         
     def load_file(self, filename: str):
         """Load and display a source file"""
@@ -450,6 +520,70 @@ class SourceCodeViewer:
                             self.text.tag_add("string", start_pos, end_pos)
                             in_string = False
                     i += 1
+    
+    def set_click_callback(self, callback):
+        """Set the callback function for source code clicks"""
+        self.click_callback = callback
+    
+    def _on_text_click(self, event):
+        """Handle clicks on source code for reverse navigation"""
+        if not self.click_callback or not self.current_file:
+            return
+        
+        # Get the position where user clicked
+        click_pos = self.text.index(f"@{event.x},{event.y}")
+        line_num = int(click_pos.split('.')[0])
+        col_num = int(click_pos.split('.')[1])
+        
+        # Convert display line number to actual source line number
+        # (accounting for the "nnnn: " prefix)
+        if line_num <= len(self.file_lines):
+            # Extract the actual column in source code (skip line number prefix)
+            display_line = self.text.get(f"{line_num}.0", f"{line_num}.end")
+            if len(display_line) > 6 and display_line[4:6] == ': ':
+                # User clicked after the line number prefix
+                if col_num > 6:
+                    source_col = col_num - 6  # Adjust for "nnnn: " prefix
+                    # Call the callback with 1-based line and column numbers
+                    self.click_callback(line_num, source_col)
+    
+    def _on_mouse_motion(self, event):
+        """Handle mouse motion for hover effects"""
+        if not self.current_file:
+            return
+            
+        # Get the line under the mouse cursor
+        try:
+            mouse_pos = self.text.index(f"@{event.x},{event.y}")
+            line_num = int(mouse_pos.split('.')[0])
+            
+            # Only highlight if this is a different line
+            if line_num != self.current_hover_line:
+                # Clear previous hover highlight
+                if self.current_hover_line:
+                    self.text.tag_remove("hover_line", f"{self.current_hover_line}.0", f"{self.current_hover_line}.end")
+                
+                # Add hover highlight to current line (if valid)
+                if 1 <= line_num <= len(self.file_lines):
+                    self.text.tag_add("hover_line", f"{line_num}.0", f"{line_num}.end")
+                    self.current_hover_line = line_num
+                    # Change cursor to indicate clickable area
+                    self.text.configure(cursor="hand2")
+                else:
+                    self.current_hover_line = None
+                    self.text.configure(cursor="xterm")
+        except:
+            # If there's any error, just use normal cursor
+            self.text.configure(cursor="xterm")
+    
+    def _on_mouse_leave(self, event):
+        """Handle mouse leaving the text widget"""
+        # Clear hover highlight
+        if self.current_hover_line:
+            self.text.tag_remove("hover_line", f"{self.current_hover_line}.0", f"{self.current_hover_line}.end")
+            self.current_hover_line = None
+        # Reset cursor
+        self.text.configure(cursor="xterm")
 
 class InteractiveConsole:
     """Interactive Python console for AST exploration"""
@@ -754,6 +888,9 @@ class ASTExplorerUI:
         self.source_viewer = SourceCodeViewer(self.source_frame)
         self.source_viewer.frame.pack(fill='both', expand=True)
         
+        # Set up reverse navigation callback (source code -> AST)
+        self.source_viewer.set_click_callback(self._on_source_click)
+        
         # Create vertical paned window for the three main panels
         self.ast_panels_paned = ttk.PanedWindow(self.main_horizontal_paned, orient='vertical')
         
@@ -792,6 +929,29 @@ class ASTExplorerUI:
         
         # Highlight corresponding source code location
         self._highlight_source_location(node)
+    
+    def _on_source_click(self, line: int, column: int):
+        """Handle clicks on source code for reverse navigation"""
+        try:
+            # Find the most specific AST node at the clicked location
+            node = self.backend.find_node_at_location(line, column)
+            
+            if node:
+                # Select and reveal the node in the tree view
+                self.ast_tree.select_and_reveal_node(node)
+                # Update info panel and console
+                self.info_panel.update_info(node)
+                self.console.update_selected_node(node)
+                
+                # Update status bar to show what was found
+                self.status_bar.config(text=f"Found: {node.cursor.kind.name} at line {line}")
+            else:
+                # No specific node found at this location
+                self.status_bar.config(text=f"No AST node found at line {line}, column {column}")
+                
+        except Exception as e:
+            # Handle any errors gracefully
+            self.status_bar.config(text=f"Error finding AST node: {str(e)}")
         
     def populate_ast_tree(self):
         """Populate the AST tree view"""
