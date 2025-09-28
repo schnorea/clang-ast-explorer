@@ -189,26 +189,81 @@ def find_variable_dependencies(cursor):
 - `STRUCT_DECL` - Struct declarations
 - `CLASS_DECL` - Class declarations
 - `ENUM_DECL` - Enum declarations
+- `ENUM_CONSTANT_DECL` - Enum constant declarations
 - `TYPEDEF_DECL` - Typedef declarations
+- `NAMESPACE_DECL` - Namespace declarations
+- `FIELD_DECL` - Class/struct member field declarations
+- `CXX_METHOD` - C++ class method declarations
+- `CONSTRUCTOR` - Constructor declarations
+- `DESTRUCTOR` - Destructor declarations
+- `CONVERSION_FUNCTION` - Type conversion function declarations
+- `TEMPLATE_TYPE_PARAMETER` - Template type parameter declarations
+- `TEMPLATE_NON_TYPE_PARAMETER` - Template non-type parameter declarations
 
 ### Statements
 - `COMPOUND_STMT` - Block statements `{}`
+- `DECL_STMT` - Declaration statements (variable declarations within functions)
 - `IF_STMT` - If statements
 - `FOR_STMT` - For loops
 - `WHILE_STMT` - While loops
+- `DO_STMT` - Do-while loops
+- `SWITCH_STMT` - Switch statements
+- `CASE_STMT` - Case labels in switch statements
+- `DEFAULT_STMT` - Default labels in switch statements
+- `BREAK_STMT` - Break statements
+- `CONTINUE_STMT` - Continue statements
+- `GOTO_STMT` - Goto statements
+- `LABEL_STMT` - Label statements
+- `NULL_STMT` - Empty statements (just semicolon)
 - `RETURN_STMT` - Return statements
 
 ### Expressions
 - `BINARY_OPERATOR` - Binary operations (+, -, *, etc.)
 - `UNARY_OPERATOR` - Unary operations (++, --, !, etc.)
+- `CONDITIONAL_OPERATOR` - Ternary operator (? :)
 - `CALL_EXPR` - Function calls
+- `MEMBER_REF_EXPR` - Member access (obj.member)
+- `ARRAY_SUBSCRIPT_EXPR` - Array subscript (arr[index])
+- `CAST_EXPR` - Type casting expressions
+- `COMPOUND_ASSIGNMENT_OPERATOR` - Compound assignments (+=, -=, etc.)
 - `DECL_REF_EXPR` - References to declared entities
+- `PAREN_EXPR` - Parenthesized expressions
+- `INIT_LIST_EXPR` - Initialization list expressions {1, 2, 3}
 - `INTEGER_LITERAL` - Integer constants
-- `STRING_LITERAL` - String constants
+- `FLOATING_LITERAL` - Floating-point constants
+- `CHARACTER_LITERAL` - Character constants ('a')
+- `STRING_LITERAL` - String constants ("hello")
+- `CXX_BOOL_LITERAL_EXPR` - Boolean literals (true/false)
+- `CXX_NULL_PTR_LITERAL_EXPR` - nullptr literal
+- `CXX_THIS_EXPR` - 'this' pointer expression
+- `CXX_NEW_EXPR` - new expressions
+- `CXX_DELETE_EXPR` - delete expressions
 
 ### References
 - `TYPE_REF` - References to types
 - `TEMPLATE_REF` - Template references
+- `NAMESPACE_REF` - References to namespaces
+- `MEMBER_REF` - References to class members
+- `LABEL_REF` - References to labels
+- `OVERLOADED_DECL_REF` - References to overloaded declarations
+
+### Preprocessing
+- `MACRO_DEFINITION` - Macro definitions (#define)
+- `MACRO_INSTANTIATION` - Macro usage/expansion
+- `INCLUSION_DIRECTIVE` - Include directives (#include)
+
+### Templates
+- `CLASS_TEMPLATE` - Class template declarations
+- `FUNCTION_TEMPLATE` - Function template declarations
+- `CLASS_TEMPLATE_PARTIAL_SPECIALIZATION` - Partial template specializations
+- `TEMPLATE_TEMPLATE_PARAMETER` - Template template parameters
+
+### Other Common Cursors
+- `TRANSLATION_UNIT` - Root of the AST (entire file)
+- `UNEXPOSED_EXPR` - Expressions not yet handled by libclang
+- `UNEXPOSED_STMT` - Statements not yet handled by libclang
+- `UNEXPOSED_DECL` - Declarations not yet handled by libclang
+- `UNEXPOSED_ATTR` - Attributes not yet handled by libclang
 
 ## Integration with EnergyPlus Analysis
 
